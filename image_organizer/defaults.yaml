@@ -1,0 +1,34 @@
+# Built-in defaults for image-organizer.
+# This file is the single source of truth for all default values.
+# It is shipped as a package resource and loaded automatically — users
+# do not need to edit it. To override any value, create your own
+# config.yaml and pass it with: image-organizer -c config.yaml
+
+hierarchy:
+  - "{year}"
+  - "{month_name} {day}"
+  - "{city}"
+
+location_granularity: "city"
+duplicate_behavior: "skip"
+cache_file: "~/.image_organizer_cache.json"
+geocode_radius_km: 10.0
+nominatim_user_agent: "image-organizer/0.1.0"
+unknown_folder_name: "Unknown"
+log_level: "INFO"
+recursive: true
+
+supported_extensions:
+  # ── Images ──────────────────────────────────────────────────────────
+  - ".jpg"
+  - ".jpeg"
+  - ".png"
+  - ".heic"   # iOS default photo format
+  - ".heif"
+  - ".webp"   # Android
+  # ── Videos ──────────────────────────────────────────────────────────
+  - ".mov"    # iOS default video format (QuickTime)
+  - ".mp4"    # iOS + Android (also covers .TS.mp4 double-extension files)
+  - ".m4v"    # iOS iTunes video
+  - ".3gp"    # Android (older devices)
+  - ".ts"     # MPEG Transport Stream (some Android / Samsung devices)

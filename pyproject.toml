@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "image-organizer"
+version = "0.1.0"
+description = "Organize photos into a configurable folder hierarchy based on EXIF metadata and GPS location."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "Contributors" }]
+keywords = ["photos", "images", "exif", "organizer", "gps", "geocoding"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "click>=8.1",
+    "Pillow>=10.0",
+    "pillow-heif>=0.13",
+    "exifread>=3.0",
+    "geopy>=2.3",
+    "PyYAML>=6.0",
+    "hachoir>=3.1",   # reads creation date from MP4/MOV container (mvhd box)
+    "mutagen>=1.47",  # reads ©xyz GPS atom from MP4/MOV
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+image-organizer = "image_organizer.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/image-organizer"
+Repository = "https://github.com/yourusername/image-organizer"
+Issues = "https://github.com/yourusername/image-organizer/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["image_organizer"]
+# defaults.yaml is a package resource loaded at runtime — must be included
+include = ["image_organizer/defaults.yaml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["image_organizer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["image_organizer"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 70

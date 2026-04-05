@@ -1,0 +1,70 @@
+# image-organizer configuration
+# All keys are optional. Defaults are shown below.
+# Copy this file, edit as needed, and pass it with: -c path/to/config.yaml
+
+# ─── Folder Hierarchy ─────────────────────────────────────────────────────────
+# Ordered list of folder levels to create in the output directory.
+# Available tokens: {year}, {month_name}, {month_num}, {day},
+#                   {city}, {state}, {country}
+# When a token's value cannot be determined, unknown_folder_name is used.
+hierarchy:
+  - "{year}"
+  - "{month_name} {day}"   # e.g. "April 25"
+  - "{city}"
+
+# ─── Location ─────────────────────────────────────────────────────────────────
+# Granularity used when extracting a place name from Nominatim's response.
+# Options: city | state | country
+location_granularity: "city"
+
+# ─── Duplicate Handling ───────────────────────────────────────────────────────
+# Behaviour when a file already exists at the destination path.
+#   skip      – leave the existing file untouched (default)
+#   rename    – append _1, _2, … before the extension (e.g. IMG_001_1.jpg)
+#   overwrite – replace the existing file
+duplicate_behavior: "skip"
+
+# ─── Geocoding Cache ──────────────────────────────────────────────────────────
+# Path to the JSON file used to persist geocode results across runs.
+# Supports ~ expansion.
+cache_file: "~/.image_organizer_cache.json"
+
+# If a cached result exists within this many kilometres of a query point,
+# it will be reused instead of making a new Nominatim API call.
+# Set to 0 to disable cache proximity matching (every coordinate calls the API).
+geocode_radius_km: 10.0
+
+# ─── Nominatim ────────────────────────────────────────────────────────────────
+# REQUIRED for reverse geocoding. Must be a unique string identifying your app.
+# See https://operations.osmfoundation.org/policies/nominatim/
+nominatim_user_agent: "image-organizer/0.1.0 (discover.ab@gmail.com)"
+
+# ─── Fallback Folder ──────────────────────────────────────────────────────────
+# Name used for any hierarchy level whose metadata is unavailable.
+unknown_folder_name: "Unknown"
+
+# ─── Logging ──────────────────────────────────────────────────────────────────
+# Minimum log level written to stderr. Can be overridden per-run with --log-level.
+# Options: DEBUG | INFO | WARNING | ERROR
+log_level: "INFO"
+
+# ─── Input Scanning ───────────────────────────────────────────────────────────
+# Set to false to process only the top-level files in the input directory.
+recursive: true
+
+# ─── Supported Formats ────────────────────────────────────────────────────────
+# Files with other extensions are silently ignored.
+supported_extensions:
+  # Images
+  - ".jpg"
+  - ".jpeg"
+  - ".png"
+  - ".heic"   # iOS default photo format
+  - ".heif"
+  - ".webp"   # Android
+  # Videos
+  - ".mov"    # iOS default video format (QuickTime)
+  - ".mp4"    # iOS + Android (also covers .TS.mp4 double-extension files)
+  - ".m4v"    # iOS iTunes video
+  - ".3gp"    # Android (older devices)
+  - ".ts"     # MPEG Transport Stream (some Android/Samsung devices)

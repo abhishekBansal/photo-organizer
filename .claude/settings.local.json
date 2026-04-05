@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile image_organizer/config.py image_organizer/file_ops.py image_organizer/organizer.py image_organizer/cli.py)",
+      "Bash(python3 -m py_compile /Users/abhishekbansal/Development/image-organizer/image_organizer/metadata.py)",
+      "Bash(python3 -m py_compile image_organizer/config.py)",
+      "Bash(python3 -m py_compile /Users/abhishekbansal/Development/image-organizer/image_organizer/geocoder.py)",
+      "Bash(python3 -m py_compile /Users/abhishekbansal/Development/image-organizer/tests/test_geocoder.py)"
+    ]
+  }
+}
