@@ -8,10 +8,9 @@ it can also be used as a library.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
 
 from .config import Config
 from .file_ops import CopyResult, copy_file, determine_destination
@@ -34,11 +33,11 @@ class OrganizerStats:
     def record(self, result: CopyResult) -> None:
         """Update counters from a CopyResult."""
         self.total += 1
-        if result.status == "copied":
+        if result.status in {"copied", "renamed"}:
+            # "renamed" is a successful copy under a deduplicated name
             self.copied += 1
-        elif result.status in {"skipped", "renamed"}:
-            # "renamed" is still a successful copy; count it under copied
-            self.copied += 1
+        elif result.status == "skipped":
+            self.skipped += 1
         elif result.status == "dry_run":
             self.dry_run += 1
         elif result.status == "error":
@@ -100,9 +99,7 @@ class Organizer:
         metadata = extract_metadata(file_path)
         dest_dir = output_dir / Path(*self._resolve_path_components(metadata))
 
-        destination = determine_destination(
-            file_path, dest_dir, self.config.duplicate_behavior
-        )
+        destination = determine_destination(file_path, dest_dir, self.config.duplicate_behavior)
 
         if destination is None:
             # determine_destination returns None for "skip" when file exists
@@ -114,7 +111,7 @@ class Organizer:
     # ------------------------------------------------------------------
     # Path component resolution
     # ------------------------------------------------------------------
-    def _resolve_path_components(self, metadata: ImageMetadata) -> Tuple[str, ...]:
+    def _resolve_path_components(self, metadata: ImageMetadata) -> tuple[str, ...]:
         """Build the ordered folder name tuple from hierarchy templates.
 
         Each hierarchy template string may contain token placeholders:
@@ -133,6 +130,11 @@ class Organizer:
             except KeyError as exc:
                 logger.warning("Unknown token %s in hierarchy template '%s'.", exc, template)
                 part = unknown
+            # Collapse templates that rendered entirely to unknowns + separators.
+            # e.g. "{month_name} {day}" with no date → "Unknown Unknown" → "Unknown"
+            stripped = part.replace(unknown, "").strip(" -_/")
+            if not stripped:
+                part = unknown
             components.append(part)
 
         return tuple(components)
@@ -141,12 +143,12 @@ class Organizer:
         """Create the token → value mapping used to render hierarchy templates."""
         subs: dict[str, str] = {}
 
-        dt: Optional[datetime] = metadata.date
+        dt: datetime | None = metadata.date
         if dt is not None:
             subs["year"] = dt.strftime("%Y")
-            subs["month_name"] = dt.strftime("%B")   # e.g. "April"
-            subs["month_num"] = dt.strftime("%m")    # e.g. "04"
-            subs["day"] = dt.strftime("%d")           # e.g. "25" (zero-padded)
+            subs["month_name"] = dt.strftime("%B")  # e.g. "April"
+            subs["month_num"] = dt.strftime("%m")  # e.g. "04"
+            subs["day"] = dt.strftime("%d")  # e.g. "25" (zero-padded)
         else:
             for key in ("year", "month_name", "month_num", "day"):
                 subs[key] = unknown
@@ -161,7 +163,7 @@ class Organizer:
 
         return subs
 
-    def _resolve_location(self, metadata: ImageMetadata) -> Optional[str]:
+    def _resolve_location(self, metadata: ImageMetadata) -> str | None:
         """Return a city name string, or None when GPS is unavailable."""
         if metadata.latitude is None or metadata.longitude is None:
             return None

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
@@ -141,23 +140,14 @@ class TestGeocoderRetry:
         """Fails twice, succeeds on the third attempt."""
         cache.load()
 
-        side_effects = [
+        nominatim_responses = [
             GeocoderTimedOut("timeout"),
             GeocoderUnavailable("unavailable"),
-            "San Francisco",  # success on attempt 3
+            MagicMock(raw={"address": {"city": "San Francisco"}}),
         ]
 
         with (
-            patch.object(cache, "_geocode", side_effect=side_effects) as mock_geocode,
-            patch("image_organizer.geocoder.time.sleep") as mock_sleep,
-        ):
-            # _geocode itself doesn't sleep — the retry loop in _geocode does,
-            # but since we mock _geocode entirely here, test the internal path directly
-            pass
-
-        # Test the retry logic inside _geocode by accessing it at the module level
-        with (
-            patch.object(cache, "_reverse", side_effect=side_effects[:-1] + [MagicMock(raw={"address": {"city": "San Francisco"}})]),
+            patch.object(cache, "_reverse", side_effect=nominatim_responses),
             patch("image_organizer.geocoder.time.sleep") as mock_sleep,
         ):
             result = cache._geocode(37.77, -122.41)

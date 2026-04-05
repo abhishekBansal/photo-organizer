@@ -11,7 +11,6 @@ import logging
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +23,17 @@ class CopyResult:
     """Outcome of a single file copy attempt."""
 
     source: Path
-    destination: Optional[Path]
+    destination: Path | None
     # "copied" | "skipped" | "renamed" | "dry_run" | "error"
     status: str
-    error: Optional[str] = field(default=None)
+    error: str | None = field(default=None)
 
 
 def determine_destination(
     source: Path,
     dest_dir: Path,
     duplicate_behavior: str,
-) -> Optional[Path]:
+) -> Path | None:
     """Resolve the final destination path for *source* inside *dest_dir*.
 
     Returns None when the file should be skipped (duplicate_behavior="skip"

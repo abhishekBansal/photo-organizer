@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from image_organizer.file_ops import CopyResult, copy_file, determine_destination
+from image_organizer.file_ops import copy_file, determine_destination
 
 
 class TestDetermineDestination:

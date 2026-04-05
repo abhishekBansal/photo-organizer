@@ -19,7 +19,6 @@ import importlib.resources as pkg_resources
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
 
 import yaml
 
@@ -45,7 +44,7 @@ class ConfigError(ValueError):
 class Config:
     # Ordered list of folder-level templates. Tokens:
     # {year}, {month_name}, {month_num}, {day}, {city}, {state}, {country}
-    hierarchy: List[str] = field(default_factory=list)
+    hierarchy: list[str] = field(default_factory=list)
 
     # Granularity used when looking up Nominatim address fields
     location_granularity: str = ""
@@ -54,7 +53,9 @@ class Config:
     duplicate_behavior: str = ""
 
     # Path to the persistent geocoding cache JSON file
-    cache_file: Path = field(default_factory=lambda: Path("~/.image_organizer_cache.json").expanduser())
+    cache_file: Path = field(
+        default_factory=lambda: Path("~/.image_organizer_cache.json").expanduser()
+    )
 
     # Radius in km — cached geocode results within this distance are reused
     geocode_radius_km: float = 10.0
@@ -73,7 +74,7 @@ class Config:
 
     # File extensions to process (always matched case-insensitively).
     # Default value lives in defaults.yaml — do not duplicate it here.
-    supported_extensions: List[str] = field(default_factory=list)
+    supported_extensions: list[str] = field(default_factory=list)
 
     # Injected by the CLI --dry-run flag; not read from any YAML file
     dry_run: bool = False
@@ -198,8 +199,7 @@ def _validate(config: Config) -> None:
 
     if config.log_level not in VALID_LOG_LEVELS:
         raise ConfigError(
-            f"Invalid log_level '{config.log_level}'. "
-            f"Choose from: {sorted(VALID_LOG_LEVELS)}"
+            f"Invalid log_level '{config.log_level}'. Choose from: {sorted(VALID_LOG_LEVELS)}"
         )
 
     if config.geocode_radius_km < 0:

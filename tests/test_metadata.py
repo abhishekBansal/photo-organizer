@@ -12,7 +12,6 @@ from image_organizer.metadata import (
     ImageMetadata,
     _dms_to_decimal,
     _extract_date,
-    _extract_gps,
     _parse_exif_date,
     _parse_iso6709,
     extract_metadata,
@@ -193,7 +192,9 @@ class TestExtractVideoMetadata:
     def test_dispatches_to_video_path_for_mov(self, tmp_path: Path):
         video = self._make_video_file(tmp_path, ".mov")
         with (
-            patch("image_organizer.metadata._extract_video_date", return_value=datetime(2024, 1, 1)),
+            patch(
+                "image_organizer.metadata._extract_video_date", return_value=datetime(2024, 1, 1)
+            ),
             patch("image_organizer.metadata._extract_video_gps", return_value=(None, None)),
         ):
             result = extract_metadata(video)
@@ -213,7 +214,9 @@ class TestExtractVideoMetadata:
     def test_video_no_gps_returns_none_coordinates(self, tmp_path: Path):
         video = self._make_video_file(tmp_path, ".3gp")
         with (
-            patch("image_organizer.metadata._extract_video_date", return_value=datetime(2023, 5, 1)),
+            patch(
+                "image_organizer.metadata._extract_video_date", return_value=datetime(2023, 5, 1)
+            ),
             patch("image_organizer.metadata._extract_video_gps", return_value=(None, None)),
         ):
             result = extract_metadata(video)

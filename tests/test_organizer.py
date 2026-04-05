@@ -4,20 +4,22 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from image_organizer.config import Config
+from image_organizer.config import Config, load_config
 from image_organizer.metadata import ImageMetadata
-from image_organizer.organizer import Organizer, OrganizerStats
+from image_organizer.organizer import Organizer
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 def _make_config(**kwargs) -> Config:
-    config = Config()
+    # Use load_config(None) so defaults.yaml is applied — this is the single
+    # source of truth for hierarchy, supported_extensions, etc.
+    config = load_config(None)
     config.nominatim_user_agent = "test/1.0"
     config.cache_file = Path("/tmp/test_geocache.json")
     for k, v in kwargs.items():
@@ -48,10 +50,11 @@ class TestResolvePathComponents:
 
         assert parts == ("2024", "April 25", "San Francisco")
 
-    def test_missing_date_uses_unknown(self, make_metadata):
+    def test_missing_date_uses_unknown(self):
         config = _make_config()
         organizer = Organizer(config)
-        meta = make_metadata(date=None, latitude=None, longitude=None)
+        # Construct directly — the make_metadata fixture replaces None date with a default
+        meta = ImageMetadata(date=None, latitude=None, longitude=None, source="none")
 
         parts = organizer._resolve_path_components(meta)
         assert all(p == "Unknown" for p in parts)

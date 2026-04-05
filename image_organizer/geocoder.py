@@ -22,11 +22,10 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 from geopy.exc import GeocoderServiceError, GeocoderTimedOut, GeocoderUnavailable
-from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
+from geopy.geocoders import Nominatim
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +134,7 @@ class GeocoderCache:
     # ------------------------------------------------------------------
     # Public lookup
     # ------------------------------------------------------------------
-    def lookup(self, lat: float, lon: float) -> Optional[str]:
+    def lookup(self, lat: float, lon: float) -> str | None:
         """Return a city name for the given coordinates.
 
         Checks the proximity cache first. If no cached entry is within
@@ -149,7 +148,10 @@ class GeocoderCache:
         if nearest is not None and distance <= self._radius_km:
             logger.debug(
                 "Cache hit for (%.6f, %.6f): '%s' (%.2f km away).",
-                lat, lon, nearest.city, distance,
+                lat,
+                lon,
+                nearest.city,
+                distance,
             )
             return nearest.city
 
@@ -173,7 +175,7 @@ class GeocoderCache:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-    def _nearest(self, lat: float, lon: float) -> tuple[float, Optional[CacheEntry]]:
+    def _nearest(self, lat: float, lon: float) -> tuple[float, CacheEntry | None]:
         """Return (min_distance_km, closest_entry) among all cached entries.
 
         Returns (inf, None) when the cache is empty.
@@ -182,7 +184,7 @@ class GeocoderCache:
             return float("inf"), None
 
         best_dist = float("inf")
-        best_entry: Optional[CacheEntry] = None
+        best_entry: CacheEntry | None = None
 
         for entry in self._entries:
             dist = haversine_km(lat, lon, entry.lat, entry.lon)
@@ -192,7 +194,7 @@ class GeocoderCache:
 
         return best_dist, best_entry
 
-    def _geocode(self, lat: float, lon: float) -> Optional[str]:
+    def _geocode(self, lat: float, lon: float) -> str | None:
         """Call Nominatim with exponential backoff retry.
 
         Attempts up to _MAX_RETRIES times on transient errors
@@ -219,15 +221,22 @@ class GeocoderCache:
                     logger.warning(
                         "Nominatim failed after %d attempts for (%.6f, %.6f): %s"
                         " — placing in Unknown folder.",
-                        _MAX_RETRIES, lat, lon, exc,
+                        _MAX_RETRIES,
+                        lat,
+                        lon,
+                        exc,
                     )
                     return None
 
                 delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
                 logger.warning(
-                    "Nominatim attempt %d/%d failed for (%.6f, %.6f): %s"
-                    " — retrying in %.0fs.",
-                    attempt, _MAX_RETRIES, lat, lon, exc, delay,
+                    "Nominatim attempt %d/%d failed for (%.6f, %.6f): %s — retrying in %.0fs.",
+                    attempt,
+                    _MAX_RETRIES,
+                    lat,
+                    lon,
+                    exc,
+                    delay,
                 )
                 time.sleep(delay)
 
@@ -245,9 +254,7 @@ class GeocoderCache:
         )
 
         if city and len(city) > _MAX_CITY_LEN:
-            logger.warning(
-                "City name '%s' exceeds %d chars; truncating.", city, _MAX_CITY_LEN
-            )
+            logger.warning("City name '%s' exceeds %d chars; truncating.", city, _MAX_CITY_LEN)
             city = city[:_MAX_CITY_LEN].rstrip()
 
         return city

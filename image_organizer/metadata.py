@@ -18,9 +18,8 @@ import io
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
 
 import exifread
 import pillow_heif
@@ -59,9 +58,9 @@ _ISO6709_RE = re.compile(r"([+-]\d+\.?\d*)([+-]\d+\.?\d*)")
 class ImageMetadata:
     """Metadata extracted from a single image or video file."""
 
-    date: Optional[datetime]
-    latitude: Optional[float]
-    longitude: Optional[float]
+    date: datetime | None
+    latitude: float | None
+    longitude: float | None
     # Where the date came from — useful for debugging and tests
     source: str  # "exif_original"|"exif_digitized"|"exif_datetime"|"container"|"file_mtime"
 
@@ -69,6 +68,7 @@ class ImageMetadata:
 # ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
+
 
 def extract_metadata(file_path: Path) -> ImageMetadata:
     """Extract date and GPS from *file_path*, dispatching by file type.
@@ -86,6 +86,7 @@ def extract_metadata(file_path: Path) -> ImageMetadata:
 # ---------------------------------------------------------------------------
 # Image path (EXIF via exifread + pillow-heif for HEIC)
 # ---------------------------------------------------------------------------
+
 
 def _extract_image_metadata(file_path: Path) -> ImageMetadata:
     tags = _read_exif_tags(file_path)
@@ -130,6 +131,7 @@ def _read_heic_tags(file_path: Path) -> dict:
 # Video path (hachoir for date, mutagen for GPS)
 # ---------------------------------------------------------------------------
 
+
 def _extract_video_metadata(file_path: Path) -> ImageMetadata:
     """Extract metadata from MP4/MOV/3GP container files."""
     date = _extract_video_date(file_path)
@@ -143,7 +145,7 @@ def _extract_video_metadata(file_path: Path) -> ImageMetadata:
     return ImageMetadata(date=date, latitude=latitude, longitude=longitude, source=source)
 
 
-def _extract_video_date(file_path: Path) -> Optional[datetime]:
+def _extract_video_date(file_path: Path) -> datetime | None:
     """Read creation_date from the MP4/MOV mvhd container atom via hachoir.
 
     hachoir parses the binary container and exposes a typed datetime that is
@@ -186,7 +188,7 @@ def _extract_video_date(file_path: Path) -> Optional[datetime]:
         return None
 
 
-def _extract_video_gps(file_path: Path) -> Tuple[Optional[float], Optional[float]]:
+def _extract_video_gps(file_path: Path) -> tuple[float | None, float | None]:
     """Read GPS from the ©xyz atom using mutagen.
 
     iOS cameras write GPS as an ISO 6709 string in the ©xyz MP4 tag, e.g.:
@@ -195,7 +197,7 @@ def _extract_video_gps(file_path: Path) -> Tuple[Optional[float], Optional[float
     3GP files also use this atom when GPS is recorded.
     """
     try:
-        from mutagen.mp4 import MP4, MP4StreamInfoError
+        from mutagen.mp4 import MP4
 
         tags = MP4(str(file_path))
         xyz_values = tags.get("©xyz")
@@ -211,7 +213,7 @@ def _extract_video_gps(file_path: Path) -> Tuple[Optional[float], Optional[float
         return None, None
 
 
-def _parse_iso6709(raw: str, filename: str = "") -> Tuple[Optional[float], Optional[float]]:
+def _parse_iso6709(raw: str, filename: str = "") -> tuple[float | None, float | None]:
     """Parse an ISO 6709 GPS string into (latitude, longitude) decimal degrees.
 
     Handles the common camera formats:
@@ -238,7 +240,8 @@ def _parse_iso6709(raw: str, filename: str = "") -> Tuple[Optional[float], Optio
 # Shared helpers
 # ---------------------------------------------------------------------------
 
-def _extract_date(tags: dict) -> Tuple[Optional[datetime], str]:
+
+def _extract_date(tags: dict) -> tuple[datetime | None, str]:
     """Parse EXIF date tags in priority order.
 
     Returns (datetime, source_label) or (None, "none").
@@ -262,7 +265,7 @@ def _extract_date(tags: dict) -> Tuple[Optional[datetime], str]:
     return None, "none"
 
 
-def _parse_exif_date(raw: str) -> Optional[datetime]:
+def _parse_exif_date(raw: str) -> datetime | None:
     """Parse a raw EXIF date string. Returns None on failure."""
     try:
         return datetime.strptime(raw.strip(), _EXIF_DATE_FORMAT)
@@ -276,7 +279,7 @@ def _fallback_date(file_path: Path) -> datetime:
     return datetime.fromtimestamp(file_path.stat().st_mtime)
 
 
-def _extract_gps(tags: dict, filename: str) -> Tuple[Optional[float], Optional[float]]:
+def _extract_gps(tags: dict, filename: str) -> tuple[float | None, float | None]:
     """Convert EXIF GPS tags to signed decimal degree coordinates."""
     required = {"GPS GPSLatitude", "GPS GPSLatitudeRef", "GPS GPSLongitude", "GPS GPSLongitudeRef"}
     if not required.issubset(tags.keys()):
@@ -298,6 +301,7 @@ def _dms_to_decimal(dms_values: list, ref: str) -> float:
     Each element has .num and .den attributes (degrees, minutes, seconds).
     Sign is negated for South ('S') or West ('W') references.
     """
+
     def ratio(r) -> float:
         if r.den == 0:
             raise ZeroDivisionError(f"GPS rational denominator is zero: {r}")

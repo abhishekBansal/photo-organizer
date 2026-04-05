@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import struct
 from pathlib import Path
 
 import pytest
@@ -28,16 +27,32 @@ def default_config() -> Config:
 def minimal_jpeg(tmp_path: Path) -> Path:
     """Write a minimal valid JPEG to a temp file and return its path."""
     # SOI + APP0 JFIF marker + minimal EOI — Pillow can identify this
-    data = bytes([
-        0xFF, 0xD8,                          # SOI
-        0xFF, 0xE0, 0x00, 0x10,             # APP0 marker + length=16
-        0x4A, 0x46, 0x49, 0x46, 0x00,       # "JFIF\0"
-        0x01, 0x01,                          # version 1.1
-        0x00,                                # aspect ratio units = 0
-        0x00, 0x01, 0x00, 0x01,             # Xdensity=1, Ydensity=1
-        0x00, 0x00,                          # no thumbnail
-        0xFF, 0xD9,                          # EOI
-    ])
+    data = bytes(
+        [
+            0xFF,
+            0xD8,  # SOI
+            0xFF,
+            0xE0,
+            0x00,
+            0x10,  # APP0 marker + length=16
+            0x4A,
+            0x46,
+            0x49,
+            0x46,
+            0x00,  # "JFIF\0"
+            0x01,
+            0x01,  # version 1.1
+            0x00,  # aspect ratio units = 0
+            0x00,
+            0x01,
+            0x00,
+            0x01,  # Xdensity=1, Ydensity=1
+            0x00,
+            0x00,  # no thumbnail
+            0xFF,
+            0xD9,  # EOI
+        ]
+    )
     p = tmp_path / "test.jpg"
     p.write_bytes(data)
     return p

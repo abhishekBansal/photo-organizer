@@ -5,7 +5,16 @@
       "Bash(python3 -m py_compile /Users/abhishekbansal/Development/image-organizer/image_organizer/metadata.py)",
       "Bash(python3 -m py_compile image_organizer/config.py)",
       "Bash(python3 -m py_compile /Users/abhishekbansal/Development/image-organizer/image_organizer/geocoder.py)",
-      "Bash(python3 -m py_compile /Users/abhishekbansal/Development/image-organizer/tests/test_geocoder.py)"
+      "Bash(python3 -m py_compile /Users/abhishekbansal/Development/image-organizer/tests/test_geocoder.py)",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -m venv .venv)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(.venv/bin/ruff check:*)",
+      "Bash(.venv/bin/pytest)",
+      "Bash(.venv/bin/ruff format:*)"
     ]
   }
 }
